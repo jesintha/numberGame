@@ -40,6 +40,7 @@ class CanvasState
 		myState = this
 		@Cells = []
 		@Dcells = []
+		
 		@selectionColor = '#CC0000';
 		@selectionWidth = 2;  
 		@interval  = 30
@@ -115,7 +116,7 @@ class CanvasState
 		, true)
 		
 	clear:() ->
-		@ctx.clearRect(0, 0, @width, @height);
+		@ctx.clearRect(0, 0, @width, @height)
 		return
 	
 	addCell:(Cell) ->
@@ -131,6 +132,12 @@ class CanvasState
 	draw:() ->
 		ctx = @ctx
 		@clear()
+		gradient1 = ctx.createLinearGradient(0, 0, 0, 300);
+		gradient1.addColorStop(0, "#00ABEB");
+		gradient1.addColorStop(1, "white");
+		ctx.fillStyle = gradient1;
+		ctx.fillRect(0, 0, @width, @height)
+		
 		for cell in @Cells
 			cell.draw(ctx)
 		for dcell in @Dcells
@@ -152,7 +159,7 @@ class CanvasState
 		
 	
 	checkifIn: (box1,box2) ->
-		Math.abs(box1.x - box2.x) <= 20 and Math.abs(box1.y - box2.y) <=20
+		Math.abs(box1.x - box2.x) <= 30 and Math.abs(box1.y - box2.y) <=30
 	
 	getCellValues: (Cells) ->
 		values = []
@@ -215,7 +222,7 @@ init =() ->
 	x = 20
 	for i in [0..noOfItems - 1]
 		cs.addCell new Cell x,htmlTop + htmlHeight - 150,60,60,'grey'
-		cs.addDCell new Dcell x ,htmlTop + htmlHeight - 250,50,50,'lightblue', randomNums[i]
+		cs.addDCell new Dcell x ,htmlTop + htmlHeight - 250,50,50,'brown', randomNums[i]
 		x+=100
 	
 

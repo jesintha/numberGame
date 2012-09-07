@@ -183,9 +183,14 @@ CanvasState = (function() {
   };
 
   CanvasState.prototype.draw = function() {
-    var cell, ctx, dcell, mySel, _i, _j, _len, _len1, _ref, _ref1;
+    var cell, ctx, dcell, gradient1, mySel, _i, _j, _len, _len1, _ref, _ref1;
     ctx = this.ctx;
     this.clear();
+    gradient1 = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient1.addColorStop(0, "#00ABEB");
+    gradient1.addColorStop(1, "white");
+    ctx.fillStyle = gradient1;
+    ctx.fillRect(0, 0, this.width, this.height);
     _ref = this.Cells;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       cell = _ref[_i];
@@ -218,7 +223,7 @@ CanvasState = (function() {
   };
 
   CanvasState.prototype.checkifIn = function(box1, box2) {
-    return Math.abs(box1.x - box2.x) <= 20 && Math.abs(box1.y - box2.y) <= 20;
+    return Math.abs(box1.x - box2.x) <= 30 && Math.abs(box1.y - box2.y) <= 30;
   };
 
   CanvasState.prototype.getCellValues = function(Cells) {
@@ -295,7 +300,7 @@ init = function() {
   x = 20;
   for (i = _i = 0, _ref = noOfItems - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
     cs.addCell(new Cell(x, htmlTop + htmlHeight - 150, 60, 60, 'grey'));
-    cs.addDCell(new Dcell(x, htmlTop + htmlHeight - 250, 50, 50, 'lightblue', randomNums[i]));
+    cs.addDCell(new Dcell(x, htmlTop + htmlHeight - 250, 50, 50, 'brown', randomNums[i]));
     x += 100;
   }
 };

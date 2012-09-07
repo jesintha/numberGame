@@ -1,4 +1,12 @@
+noOfItems = 6
+
 Array::remove = (e) -> @[t..t] = [] if (t = @indexOf(e)) > -1
+
+Array::unique = ->
+  output = {}
+  output[@[key]] = @[key] for key in [0...@length]
+  value for key, value of output
+
 
 class Box
 	constructor: (@x,@y,@w,@h,@colour,@data) ->
@@ -22,7 +30,7 @@ class Dcell extends Box
 		ctx.fillRect(@x, @y, @w, @h)
 		ctx.font = "20pt Calibri";
 		ctx.fillStyle = 'white'
-		ctx.fillText(@data, @x + @w/4 , @y + @h/2)
+		ctx.fillText(@data, @x + @w / 4 , @y + @h / 2)
 		
 class CanvasState 
 	constructor: (@canvas) ->
@@ -79,14 +87,15 @@ class CanvasState
 		canvas.addEventListener('mouseup',
 		(e)->
 			myState.dragging = false
-			
+			flag = true
 			dcells = myState.Dcells
 			
 			cells = myState.Cells
 			for i in [cells.length-1 .. 0] by -1
+				flag = true
 				cell = cells[i]
 				
-				for j in [dcells.length-1 .. 0] by -1
+				for j in [0 .. dcells.length-1]
 					dcell = dcells[j]
 					
 					if (myState.checkifIn(cell,dcell)) 
@@ -94,10 +103,15 @@ class CanvasState
 							cell.Dcell.y = cell.Dcell.y - 70	
 						dcell.x = cell.x + 5
 						dcell.y = cell.y + 5
-						cell.Dcell = dcell
-					else 
-						if(cell.Dcell)
-							cell.Dcell = "";
+						myState.Cells[i].Dcell = dcell
+						flag = false
+						
+					 
+				if(flag and cell.Dcell)
+					myState.Cells[i].Dcell = "";
+			myState.checkAscending(myState.Cells)
+					
+					
 		, true)
 		
 	clear:() ->
@@ -139,6 +153,54 @@ class CanvasState
 	
 	checkifIn: (box1,box2) ->
 		Math.abs(box1.x - box2.x) <= 20 and Math.abs(box1.y - box2.y) <=20
+	
+	getCellValues: (Cells) ->
+		values = []
+		index = 0
+		for cell in Cells
+			if(cell.Dcell != undefined and cell.Dcell != "")
+				
+				values[index] = cell.Dcell.data
+				index++
+		return values
+	
+	checkSort: (values) ->
+		isSorted = false
+		for i in [0 .. values.length-2]
+			if (parseInt(values[i]) < parseInt(values[i+1]))
+				isSorted = true
+			else
+				isSorted = false
+		if(isSorted)
+			alert "Correct"
+		else
+			alert "Wrong. Try Again"
+		return isSorted
+			
+		
+	checkAscending: (Cells) ->
+		values = @getCellValues(Cells)
+		if values.length == noOfItems
+			return @checkSort(values)
+		return false
+			
+
+getRamdomNumbers =(count) ->	
+	randomNums = []
+	index = 0
+	flag = true
+
+	while randomNums.length < count
+		randomNum = Math.floor(Math.random() * 100)
+		0 <= randomNum < 100
+
+		if(randomNum != 'undefined')
+			randomNums[index] = randomNum
+			index++
+			randomNums.unique()
+				
+	return randomNums
+
 
 init =() ->
 	parent = document.body.parentNode
@@ -147,13 +209,14 @@ init =() ->
 	htmlWidth = parent.offsetWidth
 	htmlHeight = parent.offsetHeight
 	
+	randomNums = getRamdomNumbers(noOfItems)
+
 	cs = new CanvasState document.getElementById('canvas1')
-	x = 70
-	for i in [1..4]
+	x = 20
+	for i in [0..noOfItems - 1]
 		cs.addCell new Cell x,htmlTop + htmlHeight - 150,60,60,'grey'
+		cs.addDCell new Dcell x ,htmlTop + htmlHeight - 250,50,50,'lightblue', randomNums[i]
 		x+=100
 	
-	
-	cs.addDCell new Dcell 70,htmlTop + htmlHeight - 250,50,50,'lightblue',15
-	cs.addDCell new Dcell 200,htmlTop + htmlHeight - 250,50,50,'lightblue',24
+
 	return

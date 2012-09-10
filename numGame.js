@@ -91,7 +91,7 @@ Dcell = (function(_super) {
     ctx.fillRect(this.x, this.y, this.w, this.h);
     ctx.font = "20pt Calibri";
     ctx.fillStyle = 'white';
-    return ctx.fillText(this.data, this.x + this.w / 4, this.y + this.h / 2);
+    return ctx.fillText(this.data, this.x + this.w / 4, this.y + 35);
   };
 
   return Dcell;
@@ -110,7 +110,7 @@ CanvasState = (function() {
     this.Cells = [];
     this.Dcells = [];
     this.playAgainBox = new Box(this.width - 120, 10, 100, 30, "green", "Play Again");
-    this.resetBox = new Box(this.width - 250, 10, 70, 30, "green", "Reset");
+    this.resetBox = new Box(this.width - 220, 10, 70, 30, "green", "Reset");
     this.stylePaddingLeft;
     this.stylePaddingTop;
     this.styleBorderLeft;
@@ -235,6 +235,7 @@ CanvasState = (function() {
       ctx.fillStyle = 'white';
       ctx.fillText(this.resetBox.data, this.resetBox.x + 10, this.resetBox.h);
     }
+    ctx.fillText("Fill the gray boxes in Acendending Order", this.resetBox.x - 360, this.resetBox.h);
     if (this.complete === "true") {
       _ref = this.Cells;
       _results = [];
@@ -300,14 +301,12 @@ CanvasState = (function() {
   };
 
   CanvasState.prototype.getCellValues = function(Cells) {
-    var cell, index, values, _i, _len;
+    var cell, values, _i, _len;
     values = [];
-    index = 0;
     for (_i = 0, _len = Cells.length; _i < _len; _i++) {
       cell = Cells[_i];
       if (cell.Dcell !== void 0 && cell.Dcell !== "") {
-        values[index] = cell.Dcell.data;
-        index++;
+        values.push(cell.Dcell.data);
       }
     }
     return values;

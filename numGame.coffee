@@ -35,7 +35,7 @@ class Dcell extends Box
 		ctx.fillRect(@x, @y, @w, @h)
 		ctx.font = "20pt Calibri";
 		ctx.fillStyle = 'white'
-		ctx.fillText(@data, @x + @w / 4 , @y + @h / 2)
+		ctx.fillText(@data, @x + @w / 4 , @y + 35)
 		
 class CanvasState 
 	constructor: (@canvas) ->
@@ -46,7 +46,7 @@ class CanvasState
 		@Cells = []
 		@Dcells = []
 		@playAgainBox = new Box @width - 120, 10, 100, 30, "green", "Play Again"
-		@resetBox = new Box @width - 250, 10, 70, 30, "green", "Reset"
+		@resetBox = new Box @width - 220, 10, 70, 30, "green", "Reset"
 		@stylePaddingLeft
 		@stylePaddingTop
 		@styleBorderLeft
@@ -59,7 +59,7 @@ class CanvasState
 			@styleBorderTop   = parseInt(document.defaultView.getComputedStyle(canvas, null)['borderTopWidth'], 10)   || 0;
 		
 		@complete = "false"
-		@selectionColor = '#CC0000';
+		@selectionColor = '#CC0000'
 		@selectionWidth = 2;  
 		@interval  = 30
 		setInterval(
@@ -180,6 +180,8 @@ class CanvasState
 			ctx.fillStyle = 'white'
 			
 			ctx.fillText(@resetBox.data,@resetBox.x + 10, @resetBox.h)
+			
+		ctx.fillText("Fill the gray boxes in Acendending Order",@resetBox.x - 360, @resetBox.h)
 		
 		
 		
@@ -234,12 +236,11 @@ class CanvasState
 	
 	getCellValues: (Cells) ->
 		values = []
-		index = 0
 		for cell in Cells
 			if(cell.Dcell != undefined and cell.Dcell != "")
 				
-				values[index] = cell.Dcell.data
-				index++
+				values.push cell.Dcell.data
+				
 		return values
 	
 	checkSort: (values) ->

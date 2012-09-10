@@ -361,7 +361,7 @@ reloadGame = function() {
 
 init = function() {
   var cs, i, randomNums, x, _i, _ref;
-  parent = document.body.parentNode;
+  parent = document.getElementById('canvas1').parentNode;
   htmlTop = parent.offsetTop;
   htmlLeft = parent.offsetLeft;
   htmlWidth = parent.offsetWidth;

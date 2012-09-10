@@ -274,7 +274,7 @@ reloadGame =() ->
 
 
 init =() ->
-	parent = document.body.parentNode
+	parent = document.getElementById('canvas1').parentNode
 	htmlTop = parent.offsetTop
 	htmlLeft = parent.offsetLeft
 	htmlWidth = parent.offsetWidth

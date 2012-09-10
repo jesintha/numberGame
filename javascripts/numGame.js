@@ -111,22 +111,24 @@ CanvasState = (function() {
     this.Dcells = [];
     this.playAgainBox = new Box(this.width - 120, 10, 100, 30, "green", "Play Again");
     this.resetBox = new Box(this.width - 250, 10, 70, 30, "green", "Reset");
+    this.stylePaddingLeft;
+    this.stylePaddingTop;
+    this.styleBorderLeft;
+    this.styleBorderTop;
+    if (document.defaultView && document.defaultView.getComputedStyle) {
+      this.stylePaddingLeft = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingLeft'], 10) || 0;
+      this.stylePaddingTop = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingTop'], 10) || 0;
+      this.styleBorderLeft = parseInt(document.defaultView.getComputedStyle(canvas, null)['borderLeftWidth'], 10) || 0;
+      this.styleBorderTop = parseInt(document.defaultView.getComputedStyle(canvas, null)['borderTopWidth'], 10) || 0;
+    }
     this.complete = "false";
     this.selectionColor = '#CC0000';
     this.selectionWidth = 2;
     this.interval = 30;
-	var stylePaddingLeft, stylePaddingTop, styleBorderLeft, styleBorderTop;
-	if (document.defaultView && document.defaultView.getComputedStyle) {
-    this.stylePaddingLeft = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingLeft'], 10)      || 0;
-    this.stylePaddingTop  = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingTop'], 10)       || 0;
-    this.styleBorderLeft  = parseInt(document.defaultView.getComputedStyle(canvas, null)['borderLeftWidth'], 10)  || 0;
-    this.styleBorderTop   = parseInt(document.defaultView.getComputedStyle(canvas, null)['borderTopWidth'], 10)   || 0;
-    }
     setInterval(function() {
       return myState.draw();
     }, myState.interval);
     canvas.addEventListener('mousedown', function(e) {
-	  
       var dcell, dcells, i, mouse, mx, my, seletedBox, _i, _ref;
       mouse = myState.getMouse(e);
       mx = mouse.x;
@@ -134,8 +136,6 @@ CanvasState = (function() {
       dcells = myState.Dcells;
       for (i = _i = _ref = dcells.length - 1; _i >= 0; i = _i += -1) {
         dcell = dcells[i];
-		
-		
         if (dcell.contains(mx, my)) {
           seletedBox = dcell;
           dcells.remove(dcell);
@@ -271,21 +271,20 @@ CanvasState = (function() {
 
   CanvasState.prototype.getMouse = function(e) {
     var element, mx, my, offsetX, offsetY;
-     var element = this.canvas, offsetX = 0, offsetY = 0, mx, my;
- 
-  // Compute the total offset
-  if (element.offsetParent !== undefined) {
-    do {
-      offsetX += element.offsetLeft;
-      offsetY += element.offsetTop;
-    } while ((element = element.offsetParent));
-  }
-
-  // Add padding and border style widths to offset
-  // Also add the <html> offsets in case there's a position:fixed bar
-  offsetX += this.stylePaddingLeft + this.styleBorderLeft;
-  offsetY += this.stylePaddingTop + this.styleBorderTop;
-
+    element = this.canvas;
+    offsetX = 0;
+    offsetY = 0;
+    if (element.offsetParent !== void 0) {
+      while (true) {
+        offsetX += element.offsetLeft;
+        offsetY += element.offsetTop;
+        if ((element = element.offsetParent)) {
+          break;
+        }
+      }
+    }
+    offsetX += this.stylePaddingLeft + this.styleBorderLeft;
+    offsetY += this.stylePaddingTop + this.styleBorderTop;
     mx = e.pageX - offsetX;
     my = e.pageY - offsetY;
     return {
@@ -320,6 +319,7 @@ CanvasState = (function() {
         isSorted = true;
       } else {
         isSorted = false;
+        break;
       }
     }
     if (isSorted) {
@@ -392,8 +392,8 @@ init = function() {
   cs = new CanvasState(document.getElementById('canvas1'));
   x = 20;
   for (i = _i = 0, _ref = noOfItems - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-    cs.addCell(new Cell(x,  htmlHeight - 100, 60, 60, 'grey'));
-    cs.addDCell(new Dcell(x,  htmlHeight - 200, 50, 50, 'brown', randomNums[i]));
+    cs.addCell(new Cell(x, htmlHeight - 100, 60, 60, 'grey'));
+    cs.addDCell(new Dcell(x, htmlHeight - 200, 50, 50, 'brown', randomNums[i]));
     x += 100;
   }
 };

@@ -228,11 +228,13 @@ CanvasState = (function() {
     ctx.font = "15pt Calibri";
     ctx.fillStyle = 'white';
     ctx.fillText(this.playAgainBox.data, this.playAgainBox.x + 10, this.playAgainBox.h);
-    ctx.fillStyle = this.resetBox.colour;
-    ctx.fillRect(this.resetBox.x, this.resetBox.y, this.resetBox.w, this.resetBox.h);
-    ctx.font = "15pt Calibri";
-    ctx.fillStyle = 'white';
-    ctx.fillText(this.resetBox.data, this.resetBox.x + 10, this.resetBox.h);
+    if (this.complete === "false") {
+      ctx.fillStyle = this.resetBox.colour;
+      ctx.fillRect(this.resetBox.x, this.resetBox.y, this.resetBox.w, this.resetBox.h);
+      ctx.font = "15pt Calibri";
+      ctx.fillStyle = 'white';
+      ctx.fillText(this.resetBox.data, this.resetBox.x + 10, this.resetBox.h);
+    }
     if (this.complete === "true") {
       _ref = this.Cells;
       _results = [];
@@ -359,6 +361,7 @@ CanvasState = (function() {
   CanvasState.prototype.reloadGame = function() {
     var i, randomNums, x, _i, _ref, _results;
     x = 20;
+    this.complete = "false";
     randomNums = getRamdomNumbers(noOfItems);
     _results = [];
     for (i = _i = 0, _ref = noOfItems - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {

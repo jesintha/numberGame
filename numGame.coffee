@@ -173,13 +173,14 @@ class CanvasState
 		ctx.fillStyle = 'white'
 		
 		ctx.fillText(@playAgainBox.data,@playAgainBox.x + 10, @playAgainBox.h)
+		if(@complete == "false")
+			ctx.fillStyle = @resetBox.colour
+			ctx.fillRect(@resetBox.x,@resetBox.y,@resetBox.w,@resetBox.h)
+			ctx.font = "15pt Calibri";
+			ctx.fillStyle = 'white'
+			
+			ctx.fillText(@resetBox.data,@resetBox.x + 10, @resetBox.h)
 		
-		ctx.fillStyle = @resetBox.colour
-		ctx.fillRect(@resetBox.x,@resetBox.y,@resetBox.w,@resetBox.h)
-		ctx.font = "15pt Calibri";
-		ctx.fillStyle = 'white'
-		
-		ctx.fillText(@resetBox.data,@resetBox.x + 10, @resetBox.h)
 		
 		
 		if(@complete == "true")
@@ -275,6 +276,7 @@ class CanvasState
 				
 	reloadGame: () ->
 		x = 20
+		@complete = "false"
 		randomNums = getRamdomNumbers(noOfItems)
 		for i in [0..noOfItems - 1]
 			@Cells[i].x = x

@@ -111,6 +111,16 @@ CanvasState = (function() {
     this.Dcells = [];
     this.playAgainBox = new Box(this.width - 120, 10, 100, 30, "green", "Play Again");
     this.resetBox = new Box(this.width - 250, 10, 70, 30, "green", "Reset");
+    this.stylePaddingLeft;
+    this.stylePaddingTop;
+    this.styleBorderLeft;
+    this.styleBorderTop;
+    if (document.defaultView && document.defaultView.getComputedStyle) {
+      this.stylePaddingLeft = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingLeft'], 10) || 0;
+      this.stylePaddingTop = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingTop'], 10) || 0;
+      this.styleBorderLeft = parseInt(document.defaultView.getComputedStyle(canvas, null)['borderLeftWidth'], 10) || 0;
+      this.styleBorderTop = parseInt(document.defaultView.getComputedStyle(canvas, null)['borderTopWidth'], 10) || 0;
+    }
     this.complete = "false";
     this.selectionColor = '#CC0000';
     this.selectionWidth = 2;
@@ -264,6 +274,17 @@ CanvasState = (function() {
     element = this.canvas;
     offsetX = 0;
     offsetY = 0;
+    if (element.offsetParent !== void 0) {
+      while (true) {
+        offsetX += element.offsetLeft;
+        offsetY += element.offsetTop;
+        if ((element = element.offsetParent)) {
+          break;
+        }
+      }
+    }
+    offsetX += this.stylePaddingLeft + this.styleBorderLeft;
+    offsetY += this.stylePaddingTop + this.styleBorderTop;
     mx = e.pageX - offsetX;
     my = e.pageY - offsetY;
     return {
@@ -298,6 +319,7 @@ CanvasState = (function() {
         isSorted = true;
       } else {
         isSorted = false;
+        break;
       }
     }
     if (isSorted) {
@@ -324,9 +346,9 @@ CanvasState = (function() {
       _results = [];
       for (i = _i = 0, _ref = noOfItems - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
         this.Cells[i].x = x;
-        this.Cells[i].y = htmlTop + htmlHeight - 150;
+        this.Cells[i].y = htmlHeight - 100;
         this.Dcells[i].x = x;
-        this.Dcells[i].y = htmlTop + htmlHeight - 250;
+        this.Dcells[i].y = htmlHeight - 200;
         this.Cells.Dcell = "";
         _results.push(x += 100);
       }
@@ -361,17 +383,17 @@ reloadGame = function() {
 
 init = function() {
   var cs, i, randomNums, x, _i, _ref;
-  parent = document.getElementById('canvas1').parentNode;
+  parent = document.getElementById('canvas1');
   htmlTop = parent.offsetTop;
   htmlLeft = parent.offsetLeft;
   htmlWidth = parent.offsetWidth;
   htmlHeight = parent.offsetHeight;
   randomNums = getRamdomNumbers(noOfItems);
   cs = new CanvasState(document.getElementById('canvas1'));
-  x = htmlLeft + 20;
+  x = 20;
   for (i = _i = 0, _ref = noOfItems - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-    cs.addCell(new Cell(x, htmlTop + htmlHeight - 150, 60, 60, 'grey'));
-    cs.addDCell(new Dcell(x, htmlTop + htmlHeight - 250, 50, 50, 'brown', randomNums[i]));
+    cs.addCell(new Cell(x, htmlHeight - 100, 60, 60, 'grey'));
+    cs.addDCell(new Dcell(x, htmlHeight - 200, 50, 50, 'brown', randomNums[i]));
     x += 100;
   }
 };

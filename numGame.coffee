@@ -47,6 +47,17 @@ class CanvasState
 		@Dcells = []
 		@playAgainBox = new Box @width - 120, 10, 100, 30, "green", "Play Again"
 		@resetBox = new Box @width - 250, 10, 70, 30, "green", "Reset"
+		@stylePaddingLeft
+		@stylePaddingTop
+		@styleBorderLeft
+		@styleBorderTop
+		
+		if (document.defaultView && document.defaultView.getComputedStyle) 
+			@stylePaddingLeft = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingLeft'], 10)      || 0;
+			@stylePaddingTop  = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingTop'], 10)       || 0;
+			@styleBorderLeft  = parseInt(document.defaultView.getComputedStyle(canvas, null)['borderLeftWidth'], 10)  || 0;
+			@styleBorderTop   = parseInt(document.defaultView.getComputedStyle(canvas, null)['borderTopWidth'], 10)   || 0;
+		
 		@complete = "false"
 		@selectionColor = '#CC0000';
 		@selectionWidth = 2;  
@@ -100,7 +111,7 @@ class CanvasState
 			mx = mouse.x
 			my = mouse.y
 			if (myState.playAgainBox.contains(mx,my))
-				return reloadGame()
+				return myState.reloadGame()
 			if (myState.resetBox.contains(mx,my))
 				return myState.resetGame()
 				
@@ -181,7 +192,7 @@ class CanvasState
 				
 				ctx.fillStyle = "yellow"
 				ctx.font = "25pt Calibri";
-				ctx.fillText("Congrats you won ", 20, 130)
+				ctx.fillText("Congrats you won !!", 20, 130)
 				
 			
 		else
@@ -200,8 +211,18 @@ class CanvasState
 
 	getMouse: (e) ->
 		element = @canvas 
-		offsetX = 0 
+		offsetX = 0
 		offsetY = 0
+		if (element.offsetParent != undefined) 
+			loop
+				offsetX += element.offsetLeft;
+				offsetY += element.offsetTop;
+				break if((element = element.offsetParent));
+				
+
+		offsetX += this.stylePaddingLeft + this.styleBorderLeft;
+		offsetY += this.stylePaddingTop + this.styleBorderTop;
+
 		mx = e.pageX - offsetX;
 		my = e.pageY - offsetY;
 		return {x: mx, y: my};
@@ -227,6 +248,7 @@ class CanvasState
 				isSorted = true
 			else
 				isSorted = false
+				break
 		if(isSorted)
 			@complete = "true"
 		else
@@ -245,11 +267,23 @@ class CanvasState
 			x = 20
 			for i in [0..noOfItems - 1]
 				@Cells[i].x = x
-				@Cells[i].y = htmlTop + htmlHeight - 150
+				@Cells[i].y = htmlHeight - 100
 				@Dcells[i].x =  x 
-				@Dcells[i].y = htmlTop + htmlHeight - 250
+				@Dcells[i].y = htmlHeight - 200
 				@Cells.Dcell = ""
 				x+=100
+				
+	reloadGame: () ->
+		x = 20
+		randomNums = getRamdomNumbers(noOfItems)
+		for i in [0..noOfItems - 1]
+			@Cells[i].x = x
+			@Cells[i].y = htmlHeight - 100
+			@Dcells[i].x =  x 
+			@Dcells[i].y = htmlHeight - 200
+			@Dcells[i].data =  randomNums[i] 
+			@Cells.Dcell = ""
+			x+=100
 	
 			
 
@@ -269,12 +303,8 @@ getRamdomNumbers =(count) ->
 				
 	return randomNums
 	
-reloadGame =() ->
-	window.location.reload("true")
-
-
 init =() ->
-	parent = document.getElementById('canvas1').parentNode
+	parent = document.getElementById('canvas1')
 	htmlTop = parent.offsetTop
 	htmlLeft = parent.offsetLeft
 	htmlWidth = parent.offsetWidth
@@ -283,10 +313,10 @@ init =() ->
 	randomNums = getRamdomNumbers(noOfItems)
 
 	cs = new CanvasState document.getElementById('canvas1')
-	x = htmlLeft + 20
+	x = 20
 	for i in [0..noOfItems - 1]
-		cs.addCell new Cell x,htmlTop + htmlHeight - 150,60,60,'grey'
-		cs.addDCell new Dcell x ,htmlTop + htmlHeight - 250,50,50,'brown', randomNums[i]
+		cs.addCell new Cell x, htmlHeight - 100,60,60,'grey'
+		cs.addDCell new Dcell x , htmlHeight - 200,50,50,'brown', randomNums[i]
 		x+=100
 	
 

@@ -1,5 +1,11 @@
 noOfItems = 6
 
+parent = ""
+htmlTop = ""
+htmlLeft = ""
+htmlWidth = ""
+htmlHeight = ""
+
 Array::remove = (e) -> @[t..t] = [] if (t = @indexOf(e)) > -1
 
 Array::unique = ->
@@ -40,7 +46,11 @@ class CanvasState
 		myState = this
 		@Cells = []
 		@Dcells = []
-		
+
+		@playAgainBox = new Box @width - 120, 10, 100, 30, "green", "Play Again"
+		@resetBox = new Box @width - 250, 10, 70, 30, "green", "Reset"
+		@complete = "false"
+
 		@selectionColor = '#CC0000';
 		@selectionWidth = 2;  
 		@interval  = 30
@@ -48,6 +58,7 @@ class CanvasState
 			->
 				myState.draw()
 		,myState.interval)
+		
 
 		
 		canvas.addEventListener('mousedown',
@@ -88,10 +99,22 @@ class CanvasState
 		canvas.addEventListener('mouseup',
 		(e)->
 			myState.dragging = false
+
+			mouse = myState.getMouse(e)
+			mx = mouse.x
+			my = mouse.y
+			if (myState.playAgainBox.contains(mx,my))
+				return reloadGame()
+			if (myState.resetBox.contains(mx,my))
+				return myState.resetGame()
+				
+			
+
 			flag = true
 			dcells = myState.Dcells
 			
 			cells = myState.Cells
+			
 			for i in [cells.length-1 .. 0] by -1
 				flag = true
 				cell = cells[i]
@@ -137,18 +160,49 @@ class CanvasState
 		gradient1.addColorStop(1, "white");
 		ctx.fillStyle = gradient1;
 		ctx.fillRect(0, 0, @width, @height)
+
+		ctx.fillStyle = @playAgainBox.colour
+		ctx.fillRect(@playAgainBox.x,@playAgainBox.y,@playAgainBox.w,@playAgainBox.h)
+		ctx.font = "15pt Calibri";
+		ctx.fillStyle = 'white'
 		
-		for cell in @Cells
-			cell.draw(ctx)
-		for dcell in @Dcells
-			dcell.draw(ctx)
-		if(@selection)
-			ctx.strokeStyle = this.selectionColor;
-			ctx.lineWidth = this.selectionWidth;
-			mySel = @selection;
-			ctx.strokeRect(mySel.x,mySel.y,mySel.w,mySel.h);
+		ctx.fillText(@playAgainBox.data,@playAgainBox.x + 10, @playAgainBox.h)
 		
-	
+		ctx.fillStyle = @resetBox.colour
+		ctx.fillRect(@resetBox.x,@resetBox.y,@resetBox.w,@resetBox.h)
+		ctx.font = "15pt Calibri";
+		ctx.fillStyle = 'white'
+		
+		ctx.fillText(@resetBox.data,@resetBox.x + 10, @resetBox.h)
+		
+		
+		if(@complete == "true")
+			for cell in @Cells
+				if ((cell.x - 1 + @width) > 0) 
+					cell.x  = 	cell.x - 1 
+					cell.Dcell.x = cell.Dcell.x - 1	
+				cell.draw(ctx)
+				cell.Dcell.draw(ctx)
+				
+				ctx.fillStyle = "yellow"
+				ctx.font = "25pt Calibri";
+				ctx.fillText("Congrats you won ", 20, 130)
+				
+			
+		else
+			
+			
+			for cell in @Cells
+				cell.draw(ctx)
+			for dcell in @Dcells
+				dcell.draw(ctx)
+			if(@selection)
+				ctx.strokeStyle = this.selectionColor;
+				ctx.lineWidth = this.selectionWidth;
+				mySel = @selection;
+				ctx.strokeRect(mySel.x,mySel.y,mySel.w,mySel.h);
+			
+
 	getMouse: (e) ->
 		element = @canvas 
 		offsetX = 0 
@@ -172,14 +226,16 @@ class CanvasState
 		return values
 	
 	checkSort: (values) ->
-		isSorted = false
+		isSorted = fals	e
 		for i in [0 .. values.length-2]
 			if (parseInt(values[i]) < parseInt(values[i+1]))
 				isSorted = true
 			else
 				isSorted = false
 		if(isSorted)
-			alert "Correct"
+
+			@complete = "true"
+
 		else
 			alert "Wrong. Try Again"
 		return isSorted
@@ -190,6 +246,19 @@ class CanvasState
 		if values.length == noOfItems
 			return @checkSort(values)
 		return false
+
+	
+	resetGame: () ->
+		if(@complete == "false")
+			x = 20
+			for i in [0..noOfItems - 1]
+				@Cells[i].x = x
+				@Cells[i].y = htmlTop + htmlHeight - 150
+				@Dcells[i].x =  x 
+				@Dcells[i].y = htmlTop + htmlHeight - 250
+				@Cells.Dcell = ""
+				x+=100
+
 			
 
 getRamdomNumbers =(count) ->	
@@ -207,6 +276,11 @@ getRamdomNumbers =(count) ->
 			randomNums.unique()
 				
 	return randomNums
+
+	
+reloadGame =() ->
+	window.location.reload("true")
+
 
 
 init =() ->

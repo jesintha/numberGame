@@ -283,7 +283,7 @@ init =() ->
 	randomNums = getRamdomNumbers(noOfItems)
 
 	cs = new CanvasState document.getElementById('canvas1')
-	x = 20
+	x = htmlLeft + 20
 	for i in [0..noOfItems - 1]
 		cs.addCell new Cell x,htmlTop + htmlHeight - 150,60,60,'grey'
 		cs.addDCell new Dcell x ,htmlTop + htmlHeight - 250,50,50,'brown', randomNums[i]

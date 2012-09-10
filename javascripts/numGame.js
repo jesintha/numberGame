@@ -115,10 +115,18 @@ CanvasState = (function() {
     this.selectionColor = '#CC0000';
     this.selectionWidth = 2;
     this.interval = 30;
+	var stylePaddingLeft, stylePaddingTop, styleBorderLeft, styleBorderTop;
+	if (document.defaultView && document.defaultView.getComputedStyle) {
+    this.stylePaddingLeft = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingLeft'], 10)      || 0;
+    this.stylePaddingTop  = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingTop'], 10)       || 0;
+    this.styleBorderLeft  = parseInt(document.defaultView.getComputedStyle(canvas, null)['borderLeftWidth'], 10)  || 0;
+    this.styleBorderTop   = parseInt(document.defaultView.getComputedStyle(canvas, null)['borderTopWidth'], 10)   || 0;
+    }
     setInterval(function() {
       return myState.draw();
     }, myState.interval);
     canvas.addEventListener('mousedown', function(e) {
+	  
       var dcell, dcells, i, mouse, mx, my, seletedBox, _i, _ref;
       mouse = myState.getMouse(e);
       mx = mouse.x;
@@ -126,6 +134,8 @@ CanvasState = (function() {
       dcells = myState.Dcells;
       for (i = _i = _ref = dcells.length - 1; _i >= 0; i = _i += -1) {
         dcell = dcells[i];
+		
+		
         if (dcell.contains(mx, my)) {
           seletedBox = dcell;
           dcells.remove(dcell);
@@ -261,9 +271,21 @@ CanvasState = (function() {
 
   CanvasState.prototype.getMouse = function(e) {
     var element, mx, my, offsetX, offsetY;
-    element = this.canvas;
-    offsetX = 0;
-    offsetY = 0;
+     var element = this.canvas, offsetX = 0, offsetY = 0, mx, my;
+ 
+  // Compute the total offset
+  if (element.offsetParent !== undefined) {
+    do {
+      offsetX += element.offsetLeft;
+      offsetY += element.offsetTop;
+    } while ((element = element.offsetParent));
+  }
+
+  // Add padding and border style widths to offset
+  // Also add the <html> offsets in case there's a position:fixed bar
+  offsetX += this.stylePaddingLeft + this.styleBorderLeft;
+  offsetY += this.stylePaddingTop + this.styleBorderTop;
+
     mx = e.pageX - offsetX;
     my = e.pageY - offsetY;
     return {
@@ -324,9 +346,9 @@ CanvasState = (function() {
       _results = [];
       for (i = _i = 0, _ref = noOfItems - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
         this.Cells[i].x = x;
-        this.Cells[i].y = htmlTop + htmlHeight - 150;
+        this.Cells[i].y = htmlHeight - 100;
         this.Dcells[i].x = x;
-        this.Dcells[i].y = htmlTop + htmlHeight - 250;
+        this.Dcells[i].y = htmlHeight - 200;
         this.Cells.Dcell = "";
         _results.push(x += 100);
       }
@@ -361,7 +383,7 @@ reloadGame = function() {
 
 init = function() {
   var cs, i, randomNums, x, _i, _ref;
-  parent = document.body.parentNode;
+  parent = document.getElementById('canvas1');
   htmlTop = parent.offsetTop;
   htmlLeft = parent.offsetLeft;
   htmlWidth = parent.offsetWidth;
@@ -370,8 +392,8 @@ init = function() {
   cs = new CanvasState(document.getElementById('canvas1'));
   x = 20;
   for (i = _i = 0, _ref = noOfItems - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-    cs.addCell(new Cell(x, htmlTop + htmlHeight - 150, 60, 60, 'grey'));
-    cs.addDCell(new Dcell(x, htmlTop + htmlHeight - 250, 50, 50, 'brown', randomNums[i]));
+    cs.addCell(new Cell(x,  htmlHeight - 100, 60, 60, 'grey'));
+    cs.addDCell(new Dcell(x,  htmlHeight - 200, 50, 50, 'brown', randomNums[i]));
     x += 100;
   }
 };

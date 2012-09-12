@@ -47,11 +47,13 @@ class CanvasState
 		@Dcells = []
 		@playAgainBox = new Box @width - 120, 10, 100, 30, "green", "Play Again"
 		@resetBox = new Box @width - 220, 10, 70, 30, "green", "Reset"
+		@sortBox = new Box @width - 400, 10, 120, 30, "Red", "Acending"
 		@stylePaddingLeft
 		@stylePaddingTop
 		@styleBorderLeft
 		@styleBorderTop
 		myState.dragging = false
+		myState.sort = "Acending"
 		
 		if (document.defaultView && document.defaultView.getComputedStyle) 
 			@stylePaddingLeft = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingLeft'], 10)      || 0;
@@ -60,6 +62,7 @@ class CanvasState
 			@styleBorderTop   = parseInt(document.defaultView.getComputedStyle(canvas, null)['borderTopWidth'], 10)   || 0;
 		
 		@complete = "false"
+		@tryAgain = "false"
 		@selectionColor = '#CC0000'
 		@selectionWidth = 2;  
 		@interval  = 30
@@ -120,6 +123,7 @@ class CanvasState
 		for i in [dcells.length-1 .. 0] by -1
 			dcell = dcells[i]
 			if(dcell.contains(mx,my))
+				myState.tryAgain = "false"
 				seletedBox = dcell
 				dcells.remove(dcell)
 				dcells.push(dcell)
@@ -151,6 +155,9 @@ class CanvasState
 			return myState.reloadGame()
 		if (myState.resetBox.contains(mx,my))
 			return myState.resetGame()
+		if (myState.sortBox.contains(mx,my))
+			return myState.changeSortOrder(myState)
+			
 			
 		
 		flag = true
@@ -176,7 +183,7 @@ class CanvasState
 				 
 			if(flag and cell.Dcell)
 				myState.Cells[i].Dcell = "";
-		myState.checkAscending(myState.Cells)
+		myState.checkAscending(myState.Cells,myState)
 			
 	clear:() ->
 		@ctx.clearRect(0, 0, @width, @height)
@@ -215,7 +222,13 @@ class CanvasState
 			
 			ctx.fillText(@resetBox.data,@resetBox.x + 10, @resetBox.h)
 			
-		ctx.fillText("Fill the gray boxes in Acendending Order",@resetBox.x - 360, @resetBox.h)
+		ctx.fillStyle = @sortBox.colour
+		ctx.fillRect(@sortBox.x,@sortBox.y,@sortBox.w,@sortBox.h)
+		ctx.font = "15pt Calibri";
+		ctx.fillStyle = 'white'
+		ctx.fillText(@sortBox.data,@sortBox.x + 10, @sortBox.h)
+			
+	
 		
 		
 		
@@ -230,8 +243,6 @@ class CanvasState
 				ctx.fillStyle = "yellow"
 				ctx.font = "25pt Calibri";
 				ctx.fillText("Congrats you won !!", 20, 130)
-				
-			
 		else
 			
 			
@@ -244,6 +255,11 @@ class CanvasState
 				ctx.lineWidth = this.selectionWidth;
 				mySel = @selection;
 				ctx.strokeRect(mySel.x,mySel.y,mySel.w,mySel.h);
+				
+		if (@tryAgain == "true")
+			ctx.fillStyle = "yellow"
+			ctx.font = "25pt Calibri";
+			ctx.fillText("Wrong Try Again", 20, 130)
 			
 
 	getMouse: (e) ->
@@ -277,10 +293,12 @@ class CanvasState
 				
 		return values
 	
-	checkSort: (values) ->
+	checkSort: (values,myState) ->
 		isSorted = false
 		for i in [0 .. values.length-2]
-			if (parseInt(values[i]) < parseInt(values[i+1]))
+			if (myState.sort == "Acending" and parseInt(values[i]) < parseInt(values[i+1]))
+				isSorted = true
+			else if (myState.sort == "Decending" and parseInt(values[i]) > parseInt(values[i+1]))
 				isSorted = true
 			else
 				isSorted = false
@@ -288,17 +306,30 @@ class CanvasState
 		if(isSorted)
 			@complete = "true"
 		else
-			alert "Wrong. Try Again"
+			@tryAgain = "true"
 		return isSorted
 			
 		
-	checkAscending: (Cells) ->
+	checkAscending: (Cells,myState) ->
 		values = @getCellValues(Cells)
 		if values.length == noOfItems
-			return @checkSort(values)
+			return @checkSort(values,myState)
 		return false
+		
+	changeSortOrder: (myState) ->
+		@tryAgain = "false"
+		if(myState.sort == "Acending")
+			myState.sort = "Decending"
+			myState.sortBox.data = "Decending"
+			myState.checkAscending(myState.Cells,myState)
+		else
+			myState.sort = "Acending"
+			myState.sortBox.data = "Acending"
+			myState.checkAscending(myState.Cells,myState)
+			
 	
 	resetGame: () ->
+		@tryAgain = "false"
 		if(@complete == "false")
 			x = 20
 			for i in [0..noOfItems - 1]
@@ -312,6 +343,7 @@ class CanvasState
 	reloadGame: () ->
 		x = 20
 		@complete = "false"
+		@tryAgain = "false"
 		randomNums = getRamdomNumbers(noOfItems)
 		for i in [0..noOfItems - 1]
 			@Cells[i].x = x

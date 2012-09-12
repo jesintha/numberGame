@@ -115,6 +115,7 @@ CanvasState = (function() {
     this.stylePaddingTop;
     this.styleBorderLeft;
     this.styleBorderTop;
+    myState.dragging = false;
     if (document.defaultView && document.defaultView.getComputedStyle) {
       this.stylePaddingLeft = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingLeft'], 10) || 0;
       this.stylePaddingTop = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingTop'], 10) || 0;
@@ -129,76 +130,100 @@ CanvasState = (function() {
       return myState.draw();
     }, myState.interval);
     canvas.addEventListener('mousedown', function(e) {
-      var dcell, dcells, i, mouse, mx, my, seletedBox, _i, _ref;
-      mouse = myState.getMouse(e);
-      mx = mouse.x;
-      my = mouse.y;
-      dcells = myState.Dcells;
-      for (i = _i = _ref = dcells.length - 1; _i >= 0; i = _i += -1) {
-        dcell = dcells[i];
-        if (dcell.contains(mx, my)) {
-          seletedBox = dcell;
-          dcells.remove(dcell);
-          dcells.push(dcell);
-          myState.dragoffx = mx - seletedBox.x;
-          myState.dragoffy = my - seletedBox.y;
-          myState.dragging = true;
-          myState.selection = seletedBox;
-          myState.valid = false;
-          return;
-        }
-      }
-      if (myState.selection) {
-        myState.selection = null;
-        return myState.valid = false;
-      }
+      return myState.pressAction(myState, e);
     }, true);
     canvas.addEventListener('mousemove', function(e) {
-      var mouse;
-      if (myState.dragging) {
-        mouse = myState.getMouse(e);
-        myState.selection.x = mouse.x - myState.dragoffx;
-        myState.selection.y = mouse.y - myState.dragoffy;
-        return myState.valid = false;
-      }
+      return myState.moveAction(myState, e);
     }, true);
     canvas.addEventListener('mouseup', function(e) {
-      var cell, cells, dcell, dcells, flag, i, j, mouse, mx, my, _i, _j, _ref, _ref1;
-      myState.dragging = false;
-      mouse = myState.getMouse(e);
-      mx = mouse.x;
-      my = mouse.y;
-      if (myState.playAgainBox.contains(mx, my)) {
-        return myState.reloadGame();
-      }
-      if (myState.resetBox.contains(mx, my)) {
-        return myState.resetGame();
-      }
-      flag = true;
-      dcells = myState.Dcells;
-      cells = myState.Cells;
-      for (i = _i = _ref = cells.length - 1; _i >= 0; i = _i += -1) {
-        flag = true;
-        cell = cells[i];
-        for (j = _j = 0, _ref1 = dcells.length - 1; 0 <= _ref1 ? _j <= _ref1 : _j >= _ref1; j = 0 <= _ref1 ? ++_j : --_j) {
-          dcell = dcells[j];
-          if (myState.checkifIn(cell, dcell)) {
-            if (cell.Dcell) {
-              cell.Dcell.y = cell.Dcell.y - 70;
-            }
-            dcell.x = cell.x + 5;
-            dcell.y = cell.y + 5;
-            myState.Cells[i].Dcell = dcell;
-            flag = false;
-          }
-        }
-        if (flag && cell.Dcell) {
-          myState.Cells[i].Dcell = "";
-        }
-      }
-      return myState.checkAscending(myState.Cells);
+      return myState.releaseAction(myState, e);
+    }, true);
+    canvas.addEventListener('touchstart', function(e) {
+      return myState.pressAction;
+    }, true);
+    canvas.addEventListener('touchmove', function(e) {
+      return myState.moveAction;
+    }, true);
+    canvas.addEventListener('touchend', function(e) {
+      return myState.releaseAction;
+    }, true);
+    canvas.addEventListener('touchcancel', function(e) {
+      return myState.releaseAction;
     }, true);
   }
+
+  CanvasState.prototype.pressAction = function(myState, e) {
+    var dcell, dcells, i, mouse, mx, my, seletedBox, _i, _ref;
+    mouse = myState.getMouse(e);
+    mx = mouse.x;
+    my = mouse.y;
+    dcells = myState.Dcells;
+    for (i = _i = _ref = dcells.length - 1; _i >= 0; i = _i += -1) {
+      dcell = dcells[i];
+      if (dcell.contains(mx, my)) {
+        seletedBox = dcell;
+        dcells.remove(dcell);
+        dcells.push(dcell);
+        myState.dragoffx = mx - seletedBox.x;
+        myState.dragoffy = my - seletedBox.y;
+        myState.dragging = true;
+        myState.selection = seletedBox;
+        myState.valid = false;
+        return;
+      }
+    }
+    if (myState.selection) {
+      myState.selection = null;
+      return myState.valid = false;
+    }
+  };
+
+  CanvasState.prototype.moveAction = function(myState, e) {
+    var mouse;
+    if (myState.dragging) {
+      mouse = myState.getMouse(e);
+      myState.selection.x = mouse.x - myState.dragoffx;
+      myState.selection.y = mouse.y - myState.dragoffy;
+      return myState.valid = false;
+    }
+  };
+
+  CanvasState.prototype.releaseAction = function(myState, e) {
+    var cell, cells, dcell, dcells, flag, i, j, mouse, mx, my, _i, _j, _ref, _ref1;
+    myState.dragging = false;
+    mouse = myState.getMouse(e);
+    mx = mouse.x;
+    my = mouse.y;
+    if (myState.playAgainBox.contains(mx, my)) {
+      return myState.reloadGame();
+    }
+    if (myState.resetBox.contains(mx, my)) {
+      return myState.resetGame();
+    }
+    flag = true;
+    dcells = myState.Dcells;
+    cells = myState.Cells;
+    for (i = _i = _ref = cells.length - 1; _i >= 0; i = _i += -1) {
+      flag = true;
+      cell = cells[i];
+      for (j = _j = 0, _ref1 = dcells.length - 1; 0 <= _ref1 ? _j <= _ref1 : _j >= _ref1; j = 0 <= _ref1 ? ++_j : --_j) {
+        dcell = dcells[j];
+        if (myState.checkifIn(cell, dcell)) {
+          if (cell.Dcell) {
+            cell.Dcell.y = cell.Dcell.y - 70;
+          }
+          dcell.x = cell.x + 5;
+          dcell.y = cell.y + 5;
+          myState.Cells[i].Dcell = dcell;
+          flag = false;
+        }
+      }
+      if (flag && cell.Dcell) {
+        myState.Cells[i].Dcell = "";
+      }
+    }
+    return myState.checkAscending(myState.Cells);
+  };
 
   CanvasState.prototype.clear = function() {
     this.ctx.clearRect(0, 0, this.width, this.height);

@@ -51,7 +51,6 @@ class CanvasState
 		@stylePaddingTop
 		@styleBorderLeft
 		@styleBorderTop
-		myState.dragging = false
 		
 		if (document.defaultView && document.defaultView.getComputedStyle) 
 			@stylePaddingLeft = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingLeft'], 10)      || 0;
@@ -72,112 +71,79 @@ class CanvasState
 		
 		canvas.addEventListener('mousedown',
 		(e)->
+			mouse = myState.getMouse(e)
+			mx = mouse.x
+			my = mouse.y
+			dcells = myState.Dcells
+			for i in [dcells.length-1 .. 0] by -1
+				dcell = dcells[i]
+				if(dcell.contains(mx,my))
+					seletedBox = dcell
+					dcells.remove(dcell)
+					dcells.push(dcell)
+					myState.dragoffx = mx - seletedBox.x;
+					myState.dragoffy = my - seletedBox.y;
+					myState.dragging = true;
+					myState.selection = seletedBox;
+					myState.valid = false;
+					
+					return;
 			
- 			myState.pressAction(myState,e)		
+			if myState.selection 
+				myState.selection = null;
+				myState.valid = false;
+ 					
 		, true)
 		
 		canvas.addEventListener('mousemove',
 		(e)->
-			myState.moveAction(myState,e)
+			if myState.dragging
+				mouse = myState.getMouse(e)
+				myState.selection.x = mouse.x - myState.dragoffx;
+				myState.selection.y = mouse.y - myState.dragoffy;   
+				myState.valid = false;
 		, true)
 		
 		canvas.addEventListener('mouseup',
 		(e)->
-			myState.releaseAction(myState,e)
-					
-		, true)
-		
-		canvas.addEventListener('touchstart',
-		(e)->
- 			myState.pressAction		
-		, true)
-		
-		canvas.addEventListener('touchmove',
-		(e)->
-			myState.moveAction
-		, true)
-		
-		canvas.addEventListener('touchend',
-		(e)->
-			myState.releaseAction
-					
-		, true)
-		
-		canvas.addEventListener('touchcancel',
-		(e)->
-			myState.releaseAction
-					
-		, true)
-					
-					
-		
-	
-	pressAction:(myState,e) ->
-		mouse = myState.getMouse(e)
-		mx = mouse.x
-		my = mouse.y
-		dcells = myState.Dcells
-		for i in [dcells.length-1 .. 0] by -1
-			dcell = dcells[i]
-			if(dcell.contains(mx,my))
-				seletedBox = dcell
-				dcells.remove(dcell)
-				dcells.push(dcell)
-				myState.dragoffx = mx - seletedBox.x;
-				myState.dragoffy = my - seletedBox.y;
-				myState.dragging = true;
-				myState.selection = seletedBox;
-				myState.valid = false;
-				
-				return;
-		
-		if myState.selection 
-			myState.selection = null;
-			myState.valid = false;
-		
-	moveAction:(myState,e) ->
-		if myState.dragging
+			myState.dragging = false
 			mouse = myState.getMouse(e)
-			myState.selection.x = mouse.x - myState.dragoffx;
-			myState.selection.y = mouse.y - myState.dragoffy;   
-			myState.valid = false;
-		
-	releaseAction:(myState,e) ->
-		myState.dragging = false
-		mouse = myState.getMouse(e)
-		mx = mouse.x
-		my = mouse.y
-		if (myState.playAgainBox.contains(mx,my))
-			return myState.reloadGame()
-		if (myState.resetBox.contains(mx,my))
-			return myState.resetGame()
-			
-		
-		flag = true
-		dcells = myState.Dcells
-		
-		cells = myState.Cells
-		
-		for i in [cells.length-1 .. 0] by -1
-			flag = true
-			cell = cells[i]
-			
-			for j in [0 .. dcells.length-1]
-				dcell = dcells[j]
+			mx = mouse.x
+			my = mouse.y
+			if (myState.playAgainBox.contains(mx,my))
+				return myState.reloadGame()
+			if (myState.resetBox.contains(mx,my))
+				return myState.resetGame()
 				
-				if (myState.checkifIn(cell,dcell)) 
-					if(cell.Dcell)
-						cell.Dcell.y = cell.Dcell.y - 70	
-					dcell.x = cell.x + 5
-					dcell.y = cell.y + 5
-					myState.Cells[i].Dcell = dcell
-					flag = false
-					
-				 
-			if(flag and cell.Dcell)
-				myState.Cells[i].Dcell = "";
-		myState.checkAscending(myState.Cells)
 			
+			flag = true
+			dcells = myState.Dcells
+			
+			cells = myState.Cells
+			
+			for i in [cells.length-1 .. 0] by -1
+				flag = true
+				cell = cells[i]
+				
+				for j in [0 .. dcells.length-1]
+					dcell = dcells[j]
+					
+					if (myState.checkifIn(cell,dcell)) 
+						if(cell.Dcell)
+							cell.Dcell.y = cell.Dcell.y - 70	
+						dcell.x = cell.x + 5
+						dcell.y = cell.y + 5
+						myState.Cells[i].Dcell = dcell
+						flag = false
+						
+					 
+				if(flag and cell.Dcell)
+					myState.Cells[i].Dcell = "";
+			myState.checkAscending(myState.Cells)
+					
+					
+		, true)
+		
 	clear:() ->
 		@ctx.clearRect(0, 0, @width, @height)
 		return

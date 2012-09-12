@@ -111,11 +111,13 @@ CanvasState = (function() {
     this.Dcells = [];
     this.playAgainBox = new Box(this.width - 120, 10, 100, 30, "green", "Play Again");
     this.resetBox = new Box(this.width - 220, 10, 70, 30, "green", "Reset");
+    this.sortBox = new Box(this.width - 400, 10, 120, 30, "Red", "Acending");
     this.stylePaddingLeft;
     this.stylePaddingTop;
     this.styleBorderLeft;
     this.styleBorderTop;
     myState.dragging = false;
+    myState.sort = "Acending";
     if (document.defaultView && document.defaultView.getComputedStyle) {
       this.stylePaddingLeft = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingLeft'], 10) || 0;
       this.stylePaddingTop = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingTop'], 10) || 0;
@@ -123,6 +125,7 @@ CanvasState = (function() {
       this.styleBorderTop = parseInt(document.defaultView.getComputedStyle(canvas, null)['borderTopWidth'], 10) || 0;
     }
     this.complete = "false";
+    this.tryAgain = "false";
     this.selectionColor = '#CC0000';
     this.selectionWidth = 2;
     this.interval = 30;
@@ -161,6 +164,7 @@ CanvasState = (function() {
     for (i = _i = _ref = dcells.length - 1; _i >= 0; i = _i += -1) {
       dcell = dcells[i];
       if (dcell.contains(mx, my)) {
+        myState.tryAgain = "false";
         seletedBox = dcell;
         dcells.remove(dcell);
         dcells.push(dcell);
@@ -200,6 +204,9 @@ CanvasState = (function() {
     if (myState.resetBox.contains(mx, my)) {
       return myState.resetGame();
     }
+    if (myState.sortBox.contains(mx, my)) {
+      return myState.changeSortOrder(myState);
+    }
     flag = true;
     dcells = myState.Dcells;
     cells = myState.Cells;
@@ -222,7 +229,7 @@ CanvasState = (function() {
         myState.Cells[i].Dcell = "";
       }
     }
-    return myState.checkAscending(myState.Cells);
+    return myState.checkAscending(myState.Cells, myState);
   };
 
   CanvasState.prototype.clear = function() {
@@ -240,7 +247,7 @@ CanvasState = (function() {
   };
 
   CanvasState.prototype.draw = function() {
-    var cell, ctx, dcell, gradient1, mySel, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2, _results;
+    var cell, ctx, dcell, gradient1, mySel, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
     ctx = this.ctx;
     this.clear();
     gradient1 = ctx.createLinearGradient(0, 0, 0, 300);
@@ -260,10 +267,13 @@ CanvasState = (function() {
       ctx.fillStyle = 'white';
       ctx.fillText(this.resetBox.data, this.resetBox.x + 10, this.resetBox.h);
     }
-    ctx.fillText("Fill the gray boxes in Acendending Order", this.resetBox.x - 360, this.resetBox.h);
+    ctx.fillStyle = this.sortBox.colour;
+    ctx.fillRect(this.sortBox.x, this.sortBox.y, this.sortBox.w, this.sortBox.h);
+    ctx.font = "15pt Calibri";
+    ctx.fillStyle = 'white';
+    ctx.fillText(this.sortBox.data, this.sortBox.x + 10, this.sortBox.h);
     if (this.complete === "true") {
       _ref = this.Cells;
-      _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         cell = _ref[_i];
         if ((cell.x - 1 + this.width) > 0) {
@@ -274,9 +284,8 @@ CanvasState = (function() {
         cell.Dcell.draw(ctx);
         ctx.fillStyle = "yellow";
         ctx.font = "25pt Calibri";
-        _results.push(ctx.fillText("Congrats you won !!", 20, 130));
+        ctx.fillText("Congrats you won !!", 20, 130);
       }
-      return _results;
     } else {
       _ref1 = this.Cells;
       for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
@@ -292,8 +301,13 @@ CanvasState = (function() {
         ctx.strokeStyle = this.selectionColor;
         ctx.lineWidth = this.selectionWidth;
         mySel = this.selection;
-        return ctx.strokeRect(mySel.x, mySel.y, mySel.w, mySel.h);
+        ctx.strokeRect(mySel.x, mySel.y, mySel.w, mySel.h);
       }
+    }
+    if (this.tryAgain === "true") {
+      ctx.fillStyle = "yellow";
+      ctx.font = "25pt Calibri";
+      return ctx.fillText("Wrong Try Again", 20, 130);
     }
   };
 
@@ -337,11 +351,13 @@ CanvasState = (function() {
     return values;
   };
 
-  CanvasState.prototype.checkSort = function(values) {
+  CanvasState.prototype.checkSort = function(values, myState) {
     var i, isSorted, _i, _ref;
     isSorted = false;
     for (i = _i = 0, _ref = values.length - 2; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
-      if (parseInt(values[i]) < parseInt(values[i + 1])) {
+      if (myState.sort === "Acending" && parseInt(values[i]) < parseInt(values[i + 1])) {
+        isSorted = true;
+      } else if (myState.sort === "Decending" && parseInt(values[i]) > parseInt(values[i + 1])) {
         isSorted = true;
       } else {
         isSorted = false;
@@ -351,22 +367,36 @@ CanvasState = (function() {
     if (isSorted) {
       this.complete = "true";
     } else {
-      alert("Wrong. Try Again");
+      this.tryAgain = "true";
     }
     return isSorted;
   };
 
-  CanvasState.prototype.checkAscending = function(Cells) {
+  CanvasState.prototype.checkAscending = function(Cells, myState) {
     var values;
     values = this.getCellValues(Cells);
     if (values.length === noOfItems) {
-      return this.checkSort(values);
+      return this.checkSort(values, myState);
     }
     return false;
   };
 
+  CanvasState.prototype.changeSortOrder = function(myState) {
+    this.tryAgain = "false";
+    if (myState.sort === "Acending") {
+      myState.sort = "Decending";
+      myState.sortBox.data = "Decending";
+      return myState.checkAscending(myState.Cells, myState);
+    } else {
+      myState.sort = "Acending";
+      myState.sortBox.data = "Acending";
+      return myState.checkAscending(myState.Cells, myState);
+    }
+  };
+
   CanvasState.prototype.resetGame = function() {
     var i, x, _i, _ref, _results;
+    this.tryAgain = "false";
     if (this.complete === "false") {
       x = 20;
       _results = [];
@@ -386,6 +416,7 @@ CanvasState = (function() {
     var i, randomNums, x, _i, _ref, _results;
     x = 20;
     this.complete = "false";
+    this.tryAgain = "false";
     randomNums = getRamdomNumbers(noOfItems);
     _results = [];
     for (i = _i = 0, _ref = noOfItems - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {

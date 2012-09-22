@@ -66,46 +66,49 @@ class CanvasState
 	
 		canvas.addEventListener('mousedown',
 		(e)->
-			myState.pressAction(myState,e)
+			myState.pressAction(myState,e,"mouse")
 		, true)
 		
 		canvas.addEventListener('mousemove',
 		(e)->
-			myState.moveAction(myState,e)
+			myState.moveAction(myState,e,"mouse")
 		, true)
 		
 		canvas.addEventListener('mouseup',
 		(e)->
-			myState.releaseAction(myState,e)
+			myState.releaseAction(myState,e,"mouse")
 		, true)
 		
 		canvas.addEventListener('mouseout',
 		(e)->
-			myState.releaseAction(myState,e)
+			myState.releaseAction(myState,e,"mouse")
 		, true)
 		
 		canvas.addEventListener('touchstart',
 		(e)->
- 			myState.pressAction	
+ 			myState.pressAction(myState,e,"touch")	
 		, true)
 		
 		canvas.addEventListener('touchmove',
 		(e)->
-			myState.moveAction
+			myState.moveAction(myState,e,"touch")
 		, true)
 		
 		canvas.addEventListener('touchend',
 		(e)->
-			myState.releaseAction
+			myState.releaseAction(myState,e,"touch")
 		, true)
 		
 		canvas.addEventListener('touchcancel',
 		(e)->
-			myState.releaseAction
+			myState.releaseAction(myState,e,"touch")
 		, true)
 
-	pressAction:(myState,e) ->
-		mouse = myState.getMouse(e)
+	pressAction:(myState,e,moveBy) ->
+		mouse = if(moveBy == "mouse")
+					myState.getMouse(e)
+				else
+					myState.getTouch(e)
 		mx = mouse.x
 		my = mouse.y
 		dcells = myState.Dcells
@@ -128,16 +131,22 @@ class CanvasState
 			myState.selection = null;
 			myState.valid = false;
 		
-	moveAction:(myState,e) ->
+	moveAction:(myState,e,moveBy) ->
 		if myState.dragging
-			mouse = myState.getMouse(e)
+			mouse =if(moveBy == "mouse")
+						myState.getMouse(e)
+					else
+						myState.getTouch(e)
 			myState.selection.x = mouse.x - myState.dragoffx;
 			myState.selection.y = mouse.y - myState.dragoffy;   
 			myState.valid = false;
 		
-	releaseAction:(myState,e) ->
+	releaseAction:(myState,e,moveBy) ->
 		myState.dragging = false
-		mouse = myState.getMouse(e)
+		mouse = if(moveBy == "mouse")
+					myState.getMouse(e)
+				else
+					myState.getTouch(e)
 		mx = mouse.x
 		my = mouse.y
 		if (myState.playAgainBox.contains(mx,my))
@@ -213,7 +222,7 @@ class CanvasState
 		
 		if(@complete == "true")
 			for cell in @Cells
-				if ((cell.x - 1 + @width) > 0) 
+				if ((cell.x - 1 + @width) > @canvas.offsetLeft) 
 					cell.x  = 	cell.x - 1 
 					cell.Dcell.x = cell.Dcell.x - 1	
 				cell.draw(ctx)
@@ -253,6 +262,24 @@ class CanvasState
 
 		mx = e.pageX - offsetX;
 		my = e.pageY - offsetY;
+		return {x: mx, y: my};
+		
+	getTouch: (e) ->
+		e.preventDefault()
+		element = @canvas 
+		offsetX = 0
+		offsetY = 0
+		if (element.offsetParent != undefined) 
+			loop
+				offsetX += element.offsetLeft;
+				offsetY += element.offsetTop;
+				break if((element = element.offsetParent));
+
+		offsetX += this.stylePaddingLeft + this.styleBorderLeft;
+		offsetY += this.stylePaddingTop + this.styleBorderTop;
+		
+		mx = e.targetTouches[0].pageX - offsetX;
+		my = e.targetTouches[0].pageY - offsetY;
 		return {x: mx, y: my};
 		
 	

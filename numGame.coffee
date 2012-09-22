@@ -221,6 +221,7 @@ class CanvasState
 		ctx.fillText(@sortBox.data,@sortBox.x + 10, @sortBox.h)
 		
 		if(@complete == "true")
+			@tryAgain = "false"
 			for cell in @Cells
 				if ((cell.x - 1 + @width) > @canvas.offsetLeft) 
 					cell.x  = 	cell.x - 1 

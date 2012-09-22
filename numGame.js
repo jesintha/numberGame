@@ -261,6 +261,7 @@ CanvasState = (function() {
     ctx.fillStyle = 'white';
     ctx.fillText(this.sortBox.data, this.sortBox.x + 10, this.sortBox.h);
     if (this.complete === "true") {
+      this.tryAgain = "false";
       _ref = this.Cells;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         cell = _ref[_i];

@@ -118,34 +118,34 @@ CanvasState = (function() {
       return myState.draw();
     }, myState.interval);
     canvas.addEventListener('mousedown', function(e) {
-      return myState.pressAction(myState, e);
+      return myState.pressAction(myState, e, "mouse");
     }, true);
     canvas.addEventListener('mousemove', function(e) {
-      return myState.moveAction(myState, e);
+      return myState.moveAction(myState, e, "mouse");
     }, true);
     canvas.addEventListener('mouseup', function(e) {
-      return myState.releaseAction(myState, e);
+      return myState.releaseAction(myState, e, "mouse");
     }, true);
     canvas.addEventListener('mouseout', function(e) {
-      return myState.releaseAction(myState, e);
+      return myState.releaseAction(myState, e, "mouse");
     }, true);
     canvas.addEventListener('touchstart', function(e) {
-      return myState.pressAction;
+      return myState.pressAction(myState, e, "touch");
     }, true);
     canvas.addEventListener('touchmove', function(e) {
-      return myState.moveAction;
+      return myState.moveAction(myState, e, "touch");
     }, true);
     canvas.addEventListener('touchend', function(e) {
-      return myState.releaseAction;
+      return myState.releaseAction(myState, e, "touch");
     }, true);
     canvas.addEventListener('touchcancel', function(e) {
-      return myState.releaseAction;
+      return myState.releaseAction(myState, e, "touch");
     }, true);
   }
 
-  CanvasState.prototype.pressAction = function(myState, e) {
+  CanvasState.prototype.pressAction = function(myState, e, moveBy) {
     var dcell, dcells, i, mouse, mx, my, seletedBox, _i, _ref;
-    mouse = myState.getMouse(e);
+    mouse = moveBy === "mouse" ? myState.getMouse(e) : myState.getTouch(e);
     mx = mouse.x;
     my = mouse.y;
     dcells = myState.Dcells;
@@ -170,20 +170,20 @@ CanvasState = (function() {
     }
   };
 
-  CanvasState.prototype.moveAction = function(myState, e) {
+  CanvasState.prototype.moveAction = function(myState, e, moveBy) {
     var mouse;
     if (myState.dragging) {
-      mouse = myState.getMouse(e);
+      mouse = moveBy === "mouse" ? myState.getMouse(e) : myState.getTouch(e);
       myState.selection.x = mouse.x - myState.dragoffx;
       myState.selection.y = mouse.y - myState.dragoffy;
       return myState.valid = false;
     }
   };
 
-  CanvasState.prototype.releaseAction = function(myState, e) {
+  CanvasState.prototype.releaseAction = function(myState, e, moveBy) {
     var cell, cells, dcell, dcells, flag, i, j, mouse, mx, my, _i, _j, _ref, _ref1;
     myState.dragging = false;
-    mouse = myState.getMouse(e);
+    mouse = moveBy === "mouse" ? myState.getMouse(e) : myState.getTouch(e);
     mx = mouse.x;
     my = mouse.y;
     if (myState.playAgainBox.contains(mx, my)) {
@@ -261,10 +261,11 @@ CanvasState = (function() {
     ctx.fillStyle = 'white';
     ctx.fillText(this.sortBox.data, this.sortBox.x + 10, this.sortBox.h);
     if (this.complete === "true") {
+      this.tryAgain = "false";
       _ref = this.Cells;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         cell = _ref[_i];
-        if ((cell.x - 1 + this.width) > 0) {
+        if ((cell.x - 1 + this.width) > this.canvas.offsetLeft) {
           cell.x = cell.x - 1;
           cell.Dcell.x = cell.Dcell.x - 1;
         }
@@ -317,6 +318,31 @@ CanvasState = (function() {
     offsetY += this.stylePaddingTop + this.styleBorderTop;
     mx = e.pageX - offsetX;
     my = e.pageY - offsetY;
+    return {
+      x: mx,
+      y: my
+    };
+  };
+
+  CanvasState.prototype.getTouch = function(e) {
+    var element, mx, my, offsetX, offsetY;
+    e.preventDefault();
+    element = this.canvas;
+    offsetX = 0;
+    offsetY = 0;
+    if (element.offsetParent !== void 0) {
+      while (true) {
+        offsetX += element.offsetLeft;
+        offsetY += element.offsetTop;
+        if ((element = element.offsetParent)) {
+          break;
+        }
+      }
+    }
+    offsetX += this.stylePaddingLeft + this.styleBorderLeft;
+    offsetY += this.stylePaddingTop + this.styleBorderTop;
+    mx = e.targetTouches[0].pageX - offsetX;
+    my = e.targetTouches[0].pageY - offsetY;
     return {
       x: mx,
       y: my

@@ -1,18 +1,11 @@
 noOfItems = 6
-parent = ""
-htmlTop = ""
-htmlLeft = ""
-htmlWidth = ""
-htmlHeight = ""
-
+htmlHeight=""
 Array::remove = (e) -> @[t..t] = [] if (t = @indexOf(e)) > -1
 
-Array::unique = ->
-  output = {}
-  output[@[key]] = @[key] for key in [0...@length]
-  value for key, value of output
-
-
+Array::pushUnique = (a,e) ->
+  if e not in a
+    a.push(e)
+	
 class Box
 	constructor: (@x,@y,@w,@h,@colour,@data) ->
 		@active = false
@@ -70,13 +63,10 @@ class CanvasState
 			->
 				myState.draw()
 		,myState.interval)
-		
-
-		
+	
 		canvas.addEventListener('mousedown',
 		(e)->
-			
- 			myState.pressAction(myState,e)		
+			myState.pressAction(myState,e)
 		, true)
 		
 		canvas.addEventListener('mousemove',
@@ -87,12 +77,16 @@ class CanvasState
 		canvas.addEventListener('mouseup',
 		(e)->
 			myState.releaseAction(myState,e)
-					
+		, true)
+		
+		canvas.addEventListener('mouseout',
+		(e)->
+			myState.releaseAction(myState,e)
 		, true)
 		
 		canvas.addEventListener('touchstart',
 		(e)->
- 			myState.pressAction		
+ 			myState.pressAction	
 		, true)
 		
 		canvas.addEventListener('touchmove',
@@ -103,18 +97,13 @@ class CanvasState
 		canvas.addEventListener('touchend',
 		(e)->
 			myState.releaseAction
-					
 		, true)
 		
 		canvas.addEventListener('touchcancel',
 		(e)->
 			myState.releaseAction
-					
 		, true)
-					
-					
-		
-	
+
 	pressAction:(myState,e) ->
 		mouse = myState.getMouse(e)
 		mx = mouse.x
@@ -158,17 +147,13 @@ class CanvasState
 		if (myState.sortBox.contains(mx,my))
 			return myState.changeSortOrder(myState)
 			
-			
-		
 		flag = true
 		dcells = myState.Dcells
-		
 		cells = myState.Cells
 		
 		for i in [cells.length-1 .. 0] by -1
 			flag = true
 			cell = cells[i]
-			
 			for j in [0 .. dcells.length-1]
 				dcell = dcells[j]
 				
@@ -179,8 +164,7 @@ class CanvasState
 					dcell.y = cell.y + 5
 					myState.Cells[i].Dcell = dcell
 					flag = false
-					
-				 
+			 
 			if(flag and cell.Dcell)
 				myState.Cells[i].Dcell = "";
 		myState.checkAscending(myState.Cells,myState)
@@ -212,14 +196,13 @@ class CanvasState
 		ctx.fillRect(@playAgainBox.x,@playAgainBox.y,@playAgainBox.w,@playAgainBox.h)
 		ctx.font = "15pt Calibri";
 		ctx.fillStyle = 'white'
-		
 		ctx.fillText(@playAgainBox.data,@playAgainBox.x + 10, @playAgainBox.h)
+		
 		if(@complete == "false")
 			ctx.fillStyle = @resetBox.colour
 			ctx.fillRect(@resetBox.x,@resetBox.y,@resetBox.w,@resetBox.h)
 			ctx.font = "15pt Calibri";
 			ctx.fillStyle = 'white'
-			
 			ctx.fillText(@resetBox.data,@resetBox.x + 10, @resetBox.h)
 			
 		ctx.fillStyle = @sortBox.colour
@@ -227,10 +210,6 @@ class CanvasState
 		ctx.font = "15pt Calibri";
 		ctx.fillStyle = 'white'
 		ctx.fillText(@sortBox.data,@sortBox.x + 10, @sortBox.h)
-			
-	
-		
-		
 		
 		if(@complete == "true")
 			for cell in @Cells
@@ -244,8 +223,6 @@ class CanvasState
 				ctx.font = "25pt Calibri";
 				ctx.fillText("Congrats you won !!", 20, 130)
 		else
-			
-			
 			for cell in @Cells
 				cell.draw(ctx)
 			for dcell in @Dcells
@@ -260,7 +237,6 @@ class CanvasState
 			ctx.fillStyle = "yellow"
 			ctx.font = "25pt Calibri";
 			ctx.fillText("Wrong Try Again", 20, 130)
-			
 
 	getMouse: (e) ->
 		element = @canvas 
@@ -271,7 +247,6 @@ class CanvasState
 				offsetX += element.offsetLeft;
 				offsetY += element.offsetTop;
 				break if((element = element.offsetParent));
-				
 
 		offsetX += this.stylePaddingLeft + this.styleBorderLeft;
 		offsetY += this.stylePaddingTop + this.styleBorderTop;
@@ -288,7 +263,6 @@ class CanvasState
 		values = []
 		for cell in Cells
 			if(cell.Dcell != undefined and cell.Dcell != "")
-				
 				values.push cell.Dcell.data
 				
 		return values
@@ -308,8 +282,7 @@ class CanvasState
 		else
 			@tryAgain = "true"
 		return isSorted
-			
-		
+	
 	checkAscending: (Cells,myState) ->
 		values = @getCellValues(Cells)
 		if values.length == noOfItems
@@ -326,8 +299,7 @@ class CanvasState
 			myState.sort = "Acending"
 			myState.sortBox.data = "Acending"
 			myState.checkAscending(myState.Cells,myState)
-			
-	
+
 	resetGame: () ->
 		@tryAgain = "false"
 		if(@complete == "false")
@@ -353,8 +325,6 @@ class CanvasState
 			@Dcells[i].data =  randomNums[i] 
 			@Cells.Dcell = ""
 			x+=100
-	
-			
 
 getRamdomNumbers =(count) ->	
 	randomNums = []
@@ -363,30 +333,23 @@ getRamdomNumbers =(count) ->
 
 	while randomNums.length < count
 		randomNum = Math.floor(Math.random() * 100)
-		0 <= randomNum < 100
-
-		if(randomNum != 'undefined')
-			randomNums[index] = randomNum
-			index++
-			randomNums.unique()
+		if(randomNum != 'undefined' and 0 < randomNum < 100)
+			randomNums.push randomNum
+			randomNums.pushUnique(randomNums,randomNum)
 				
 	return randomNums
 	
 init =() ->
 	parent = document.getElementById('canvas1')
-	htmlTop = parent.offsetTop
-	htmlLeft = parent.offsetLeft
-	htmlWidth = parent.offsetWidth
 	htmlHeight = parent.offsetHeight
 	
 	randomNums = getRamdomNumbers(noOfItems)
 
 	cs = new CanvasState document.getElementById('canvas1')
+
 	x = 20
 	for i in [0..noOfItems - 1]
 		cs.addCell new Cell x, htmlHeight - 100,60,60,'grey'
 		cs.addDCell new Dcell x , htmlHeight - 200,50,50,'brown', randomNums[i]
 		x+=100
-	
-
 	return

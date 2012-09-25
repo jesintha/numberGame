@@ -457,7 +457,6 @@ getRamdomNumbers = function(count) {
   while (randomNums.length < count) {
     randomNum = Math.floor(Math.random() * 100);
     if (randomNum !== 'undefined' && (0 < randomNum && randomNum < 100)) {
-      randomNums.push(randomNum);
       randomNums.pushUnique(randomNums, randomNum);
     }
   }
